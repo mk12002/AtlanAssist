@@ -30,24 +30,19 @@ def download_and_unzip_index():
     zip_file = "faiss_index.zip"
 
     if not os.path.exists(index_dir):
-        st.warning(f"⏳ Index not found. Downloading from the cloud... (this happens only once)")
-
-        # Get the file ID from Streamlit secrets
         file_id = st.secrets.get("GDRIVE_INDEX_ID")
         if not file_id:
             st.error("🚨 GDRIVE_INDEX_ID secret not found. Please add it in your Streamlit Cloud settings.")
             st.stop()
 
-        # Download the zip file
-        output = gdown.download(id=file_id, output=zip_file, quiet=False)
+        # The spinner will appear only while this block is running
+        with st.spinner("⏳ First-time setup: Downloading knowledge base... Please wait."):
+            output = gdown.download(id=file_id, output=zip_file, quiet=False)
+            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                zip_ref.extractall(".")
+            os.remove(zip_file)
 
-        # Unzip the file
-        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
-            zip_ref.extractall(".")
-        st.success("✅ Index downloaded and ready!")
-
-        # Clean up the zip file
-        os.remove(zip_file)
+        st.success("✅ Knowledge base ready!")
 
 # Helper function for colored status tags
 def status_tag(text, color):
@@ -216,28 +211,60 @@ st.divider()
 st.header("📑 Detailed View: Classified Tickets")
 st.caption("Review individual tickets and the AI's detailed classification for each.")
 
-for item in classified_tickets:
-    with st.expander(f"**{item['id']}**: {item['subject']}"):
-        classification = item['classification']
-        
-        # Display colored tags at the top
-        priority_color = {"P0 (High)": "#D32F2F", "P1 (Medium)": "#F57C00", "P2 (Low)": "#388E3C"}.get(classification['priority'], "#757575")
-        sentiment_color = {"Frustrated": "#D32F2F", "Angry": "red", "Curious": "#1976D2", "Neutral": "#757575"}.get(classification['sentiment'], "#757575")
-        
-        tags_html = status_tag(classification['priority'], priority_color)
-        tags_html += status_tag(classification['sentiment'], sentiment_color)
-        for topic in classification['topic_tags']:
-            tags_html += status_tag(topic, "#546E7A")
-        
-        st.markdown(tags_html, unsafe_allow_html=True)
-        st.markdown("---")
-        
-        # Display ticket content
-        st.markdown("**Ticket Content:**")
-        st.text_area("", item['body'], height=150, disabled=True)
-        
-        with st.expander("View Raw Classification JSON"):
-            st.json(classification)
+# Create two columns
+col1, col2 = st.columns(2)
+
+# Loop through the tickets with an index
+for index, item in enumerate(classified_tickets):
+    # Use the first column for even-indexed tickets
+    if index % 2 == 0:
+        with col1:
+            with st.expander(f"**{item['id']}**: {item['subject']}"):
+                classification = item['classification']
+                
+                # Display colored tags at the top
+                priority_color = {"P0 (High)": "#D32F2F", "P1 (Medium)": "#F57C00", "P2 (Low)": "#388E3C"}.get(classification['priority'], "#757575")
+                sentiment_color = {"Frustrated": "#D32F2F", "Angry": "red", "Curious": "#1976D2", "Neutral": "#757575"}.get(classification['sentiment'], "#757575")
+                
+                tags_html = status_tag(classification['priority'], priority_color)
+                tags_html += status_tag(classification['sentiment'], sentiment_color)
+                for topic in classification['topic_tags']:
+                    tags_html += status_tag(topic, "#546E7A")
+                
+                st.markdown(tags_html, unsafe_allow_html=True)
+                st.markdown("---")
+                
+                # Display ticket content
+                st.markdown("**Ticket Content:**")
+                st.text_area("", item['body'], height=150, disabled=True)
+                
+                with st.expander("View Raw Classification JSON"):
+                    st.json(classification)
+
+    # Use the second column for odd-indexed tickets
+    else:
+        with col2:
+            with st.expander(f"**{item['id']}**: {item['subject']}"):
+                classification = item['classification']
+                
+                # Display colored tags at the top
+                priority_color = {"P0 (High)": "#D32F2F", "P1 (Medium)": "#F57C00", "P2 (Low)": "#388E3C"}.get(classification['priority'], "#757575")
+                sentiment_color = {"Frustrated": "#D32F2F", "Angry": "red", "Curious": "#1976D2", "Neutral": "#757575"}.get(classification['sentiment'], "#757575")
+                
+                tags_html = status_tag(classification['priority'], priority_color)
+                tags_html += status_tag(classification['sentiment'], sentiment_color)
+                for topic in classification['topic_tags']:
+                    tags_html += status_tag(topic, "#546E7A")
+                
+                st.markdown(tags_html, unsafe_allow_html=True)
+                st.markdown("---")
+                
+                # Display ticket content
+                st.markdown("**Ticket Content:**")
+                st.text_area("", item['body'], height=150, disabled=True)
+                
+                with st.expander("View Raw Classification JSON"):
+                    st.json(classification)
 
 st.divider()
 # --- SECTION 3: INTERACTIVE SIMULATION ---
