@@ -6,10 +6,13 @@
     "classification": {
       "topic_tags": [
         "Connector",
-        "How-to"
+        "Troubleshooting",
+        "Security"
       ],
-      "sentiment": "Frustrated",
-      "priority": "P0 (High)"
+      "sentiment": "Urgent",
+      "priority": "P1 (Medium)",
+      "summary": "The user is unable to connect their Snowflake production database to Atlan due to insufficient permissions. This is blocking their BI team's work on a major project.",
+      "suggested_action": "The Snowflake connector team should investigate the required permissions for connecting Snowflake to Atlan. They should provide the user with a definitive list of permissions and credentials needed, and assist in troubleshooting the connection issue."
     }
   },
   {
@@ -19,11 +22,13 @@
     "classification": {
       "topic_tags": [
         "Connector",
-        "How-to",
-        "Lineage"
+        "Lineage",
+        "Documentation"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P1 (Medium)",
+      "summary": "User needs clarification on which connectors (Fivetran, dbt, Tableau) automatically capture data lineage in Atlan.  They need this information for a presentation next week.",
+      "suggested_action": "Research which connectors support automatic lineage capture and prepare a concise explanation of lineage differences for Fivetran, dbt, and Tableau.  Follow up with the user by end of day."
     }
   },
   {
@@ -32,12 +37,14 @@
     "body": "Our primary data lake is hosted on-premise within a secure VPC and is not exposed to the internet. We understand we need to use the Atlan agent for this, but the setup instructions are a bit confusing for our security team. This is a critical source for us, and we can't proceed with our rollout until we get this connected. Can you provide a detailed deployment guide or connect us with a technical expert?",
     "classification": {
       "topic_tags": [
-        "Product",
-        "How-to",
-        "Connector"
+        "Connector",
+        "Onboarding",
+        "Documentation"
       ],
-      "sentiment": "Frustrated",
-      "priority": "P0 (High)"
+      "sentiment": "Urgent",
+      "priority": "P1 (Medium)",
+      "summary": "The customer needs help deploying the Atlan agent for their on-premise data lake due to unclear setup instructions. This is blocking their rollout.",
+      "suggested_action": "Assign a technical expert from the deployment team to assist the customer with the agent setup and provide a more detailed, security-focused deployment guide."
     }
   },
   {
@@ -48,10 +55,12 @@
       "topic_tags": [
         "How-to",
         "Product",
-        "Connector"
+        "Feature request"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P2 (Low)",
+      "summary": "User inquiry about the availability of a feature to view sample data and schema changes within Atlan, without needing to access the Redshift cluster directly.",
+      "suggested_action": "Check Atlan's documentation for a feature fulfilling this need. If not available, log this as a feature request for the product team."
     }
   },
   {
@@ -61,12 +70,13 @@
     "classification": {
       "topic_tags": [
         "Lineage",
-        "Export",
-        "UI",
-        "Audit"
+        "How-to",
+        "Documentation"
       ],
-      "sentiment": "Frustrated",
-      "priority": "P0 (High)"
+      "sentiment": "Urgent",
+      "priority": "P1 (Medium)",
+      "summary": "User needs to export a lineage view for the `fact_orders` table for an audit, but there's no export functionality. Deadline is approaching.",
+      "suggested_action": "Check if lineage export is a planned feature. If not, add it to the product backlog. In the meantime, provide a workaround, such as taking a screenshot or exploring third-party diagramming tools that can connect to the lineage data."
     }
   },
   {
@@ -75,13 +85,14 @@
     "body": "We run hundreds of ETL jobs in Airflow, and we need to see that lineage reflected in Atlan. I've read that Atlan can integrate with Airflow, but how do we configure it to correctly map our DAGs to the specific datasets they are transforming? The current documentation is a bit high-level.",
     "classification": {
       "topic_tags": [
-        "How-to",
-        "Product",
-        "Connector",
-        "API/SDK"
+        "Lineage",
+        "Integration",
+        "Documentation"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P1 (Medium)",
+      "summary": "The user needs help configuring Atlan to import lineage from Airflow jobs.  The current documentation is insufficient.",
+      "suggested_action": "Assign to the Integrations team for detailed guidance on Airflow-Atlan integration and documentation improvement suggestions."
     }
   },
   {
@@ -92,10 +103,12 @@
       "topic_tags": [
         "How-to",
         "Product",
-        "Visual Query Builder"
+        "Documentation"
       ],
-      "sentiment": "Frustrated",
-      "priority": "P1 (Medium)"
+      "sentiment": "Confused",
+      "priority": "P2 (Low)",
+      "summary": "User needs guidance on using the Visual Query Builder, specifically joining multiple tables and saving queries.",
+      "suggested_action": "Provide links to relevant documentation or tutorials on Visual Query Builder. If no suitable documentation exists, assign to documentation team to create one."
     }
   },
   {
@@ -105,11 +118,13 @@
     "classification": {
       "topic_tags": [
         "API/SDK",
-        "Product",
-        "How-to"
+        "Lineage",
+        "Documentation"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P1 (Medium)",
+      "summary": "Request for programmatic lineage extraction via Atlan API. The data science team needs to build a custom application to analyze metadata propagation delays.",
+      "suggested_action": "API team to provide documentation on lineage API endpoints and response structure. If no such API exists, assess feasibility of adding this feature."
     }
   },
   {
@@ -118,12 +133,14 @@
     "body": "This is infuriating. We have a critical Snowflake view, `finance.daily_revenue`, that is built from three upstream tables. Atlan is correctly showing the downstream dependencies, but the upstream lineage is completely missing. This makes the view untrustworthy for our analysts. We've re-run the crawler multiple times. What could be causing this? This is a huge problem for us.",
     "classification": {
       "topic_tags": [
-        "Product",
+        "Lineage",
         "Bug",
-        "Connector"
+        "Troubleshooting"
       ],
-      "sentiment": "Angry",
-      "priority": "P0 (High)"
+      "sentiment": "Frustrated",
+      "priority": "P1 (Medium)",
+      "summary": "Upstream lineage to Snowflake view `finance.daily_revenue` is missing in Atlan, despite multiple crawler re-runs. This impacts data trustworthiness for analysts.",
+      "suggested_action": "Engineering team to investigate the lineage issue for Snowflake view `finance.daily_revenue`.  Prioritize debugging the crawler and Snowflake connector to identify the root cause of the missing upstream lineage.  Escalate to P0 if the issue cannot be resolved within 24 hours."
     }
   },
   {
@@ -133,11 +150,13 @@
     "classification": {
       "topic_tags": [
         "How-to",
-        "Product",
-        "Bulk Import"
+        "Glossary",
+        "API/SDK"
       ],
       "sentiment": "Frustrated",
-      "priority": "P0 (High)"
+      "priority": "P1 (Medium)",
+      "summary": "The user needs a bulk import method (CSV or API) to migrate 500+ glossary terms and their asset links into Atlan, as the manual process is blocking their governance initiative.",
+      "suggested_action": "Check Atlan's documentation for bulk import options via CSV or API. If not available, escalate to product team for feature request."
     }
   },
   {
@@ -147,11 +166,13 @@
     "classification": {
       "topic_tags": [
         "How-to",
-        "Product",
-        "Role Management"
+        "Security",
+        "Onboarding"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P2 (Low)",
+      "summary": "The user needs guidance on creating a custom role with specific permissions for data stewards, allowing description edits and glossary linking but restricting query execution and connection modifications.",
+      "suggested_action": "Assign to the Access Control team for detailed instructions on custom role creation and permission management."
     }
   },
   {
@@ -161,11 +182,13 @@
     "classification": {
       "topic_tags": [
         "How-to",
-        "Product",
-        "Connector"
+        "Integration",
+        "SSO"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P1 (Medium)",
+      "summary": "The user needs guidance on how to map Active Directory groups to Atlan teams for automated permission management.",
+      "suggested_action": "Assign to the Implementation team for documentation update and/or creation of a how-to guide.  If this is not currently supported, assign to product team for feature request evaluation."
     }
   },
   {
@@ -174,14 +197,14 @@
     "body": "I need clarification on how Atlan's role-based access control works. If a user is denied access to a specific Snowflake schema, can they still see the glossary terms that are linked to the tables in that schema? I need to ensure our PII governance is airtight.",
     "classification": {
       "topic_tags": [
-        "RBAC",
-        "PII",
-        "Governance",
-        "Access Control",
-        "Glossary"
+        "Security",
+        "Glossary",
+        "Documentation"
       ],
-      "sentiment": "Concerned",
-      "priority": "P0 (High)"
+      "sentiment": "Curious",
+      "priority": "P1 (Medium)",
+      "summary": "User needs clarification on how Atlan's RBAC interacts with glossaries, specifically whether access restrictions on assets (Snowflake schema) affect visibility of linked glossary terms.  PII governance is the primary concern.",
+      "suggested_action": "Assign to Security team for clarification on RBAC and glossary access permissions.  Documentation update may be needed to address this interaction."
     }
   },
   {
@@ -190,11 +213,13 @@
     "body": "We've started identifying owners for our key data assets. What is the recommended workflow in Atlan to assign these owners and automatically notify them? We want to make sure they are aware of their responsibilities without us having to send manual emails for every assignment.",
     "classification": {
       "topic_tags": [
-        "How-to",
-        "Product"
+        "Onboarding",
+        "How-to"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P2 (Low)",
+      "summary": "The user is seeking guidance on the workflow for onboarding data asset owners in Atlan and automating the notification process.",
+      "suggested_action": "Assign to the Atlan Onboarding team to provide instructions and documentation on the asset owner onboarding process.  They should also check if an automated notification feature exists or if this is a feature request."
     }
   },
   {
@@ -203,13 +228,14 @@
     "body": "Our security team is evaluating Atlan and their main question is around PII and sensitive data. How does Atlan automatically identify fields containing PII? What are our options to apply tags or masks to these fields once they are identified to prevent unauthorized access?",
     "classification": {
       "topic_tags": [
-        "PII",
-        "Security",
-        "Data Masking",
-        "How-to"
+        "Sensitive data",
+        "Glossary",
+        "Security"
       ],
-      "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "sentiment": "Neutral",
+      "priority": "P1 (Medium)",
+      "summary": "Security team evaluating Atlan's handling of PII; needs info on automatic PII identification and masking options.",
+      "suggested_action": "Forward to Atlan's security team for a detailed response on PII handling, masking, and access control features."
     }
   },
   {
@@ -219,11 +245,13 @@
     "classification": {
       "topic_tags": [
         "API/SDK",
-        "Authentication",
-        "How-to"
+        "Security",
+        "Best practices"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P2 (Low)",
+      "summary": "The user is inquiring about supported authentication methods for Atlan APIs and SDKs, specifically whether OAuth is supported and how to manage API key rotation.",
+      "suggested_action": "The API/SDK team should respond with a detailed explanation of supported authentication methods, including API keys and OAuth if available.  Provide guidance on programmatic key rotation and best practices for secure API usage."
     }
   },
   {
@@ -233,12 +261,13 @@
     "classification": {
       "topic_tags": [
         "SSO",
-        "SAML",
-        "Okta",
-        "How-to"
+        "How-to",
+        "Best practices"
       ],
-      "sentiment": "Concerned",
-      "priority": "P1 (Medium)"
+      "sentiment": "Curious",
+      "priority": "P1 (Medium)",
+      "summary": "The customer wants to test SAML SSO configuration with Okta before enabling it for all users to avoid disruption.",
+      "suggested_action": "The SSO team should provide instructions and support for testing the SAML configuration with a test user or group before full rollout.  Additionally, provide documentation on the rollback process in case of issues."
     }
   },
   {
@@ -248,13 +277,13 @@
     "classification": {
       "topic_tags": [
         "SSO",
-        "Group Assignment",
-        "SAML",
-        "Authentication",
-        "Bug"
+        "Bug",
+        "Troubleshooting"
       ],
       "sentiment": "Frustrated",
-      "priority": "P0 (High)"
+      "priority": "P1 (Medium)",
+      "summary": "SSO login failed to assign new user to the correct group, blocking access to assets.",
+      "suggested_action": "Investigate the SSO configuration and SAML assertions to identify why the user was not added to the 'Data Analysts' group. Check user provisioning and group assignment rules.  Assign to SSO/IAM team."
     }
   },
   {
@@ -263,11 +292,14 @@
     "body": "Does Atlan have the capability to integrate with third-party tools like a DLP (Data Loss Prevention) solution or a secrets manager like HashiCorp Vault? We need to ensure that connection credentials and sensitive metadata classifications are handled by our central security systems.",
     "classification": {
       "topic_tags": [
-        "Connector",
-        "Security"
+        "Integration",
+        "Security",
+        "Sensitive data"
       ],
-      "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "sentiment": "Neutral",
+      "priority": "P1 (Medium)",
+      "summary": "The user is inquiring about Atlan's integration capabilities with third-party DLP and secrets management tools for enhanced security and compliance.",
+      "suggested_action": "Forward this request to the product team for review and response.  They should outline Atlan's current integration options and any roadmap items related to DLP and secrets manager integrations."
     }
   },
   {
@@ -276,12 +308,14 @@
     "body": "Our compliance team needs to perform a quarterly review of all activities within Atlan. They need to know who accessed what data, who made permission changes, etc. Where can we find these audit logs, and is there a way to export them or pull them via an API for our records?",
     "classification": {
       "topic_tags": [
-        "Compliance",
-        "Audit Logs",
-        "Data Access"
+        "Product",
+        "Security",
+        "Documentation"
       ],
-      "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "sentiment": "Neutral",
+      "priority": "P1 (Medium)",
+      "summary": "Compliance team needs access to Atlan audit logs for quarterly reviews. They need to know who accessed what data and who made permission changes.  They need to know how to export or pull these logs via API.",
+      "suggested_action": "Check Atlan's documentation for information on audit logs and API access. If documentation is insufficient or if API access is not available, escalate to the product team for feature request or documentation update."
     }
   },
   {
@@ -292,10 +326,12 @@
       "topic_tags": [
         "API/SDK",
         "How-to",
-        "Product"
+        "Documentation"
       ],
-      "sentiment": "Frustrated",
-      "priority": "P1 (Medium)"
+      "sentiment": "Confused",
+      "priority": "P1 (Medium)",
+      "summary": "The user needs help with programmatically creating an asset using the REST API.  The API documentation is unclear on the required payload structure.",
+      "suggested_action": "API team to provide a code example and improve the API documentation."
     }
   },
   {
@@ -304,13 +340,14 @@
     "body": "I'm a data engineer and prefer using SDKs over raw API calls. Which languages do you provide SDKs for? I'm particularly interested in Python. Where can I find the installation instructions (e.g., PyPI package name) and a short code snippet for a common task, like creating a new glossary term?",
     "classification": {
       "topic_tags": [
-        "SDK",
         "API/SDK",
-        "How-to",
-        "Product"
+        "Documentation",
+        "How-to"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P2 (Low)",
+      "summary": "User inquiry about SDK availability, specifically Python SDK, and requests code example for creating glossary terms.",
+      "suggested_action": "Provide links to available SDKs, including Python SDK installation instructions (PyPI package name) and a code snippet demonstrating glossary term creation. If Python SDK is not available, suggest alternatives or indicate plans for future development."
     }
   },
   {
@@ -321,10 +358,12 @@
       "topic_tags": [
         "How-to",
         "API/SDK",
-        "Product"
+        "Integration"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P2 (Low)",
+      "summary": "User inquiry about Atlan webhooks, specifically how they work, what events trigger them, and payload validation.",
+      "suggested_action": "Document the webhook functionality, including supported events and payload signing, and assign to the documentation team for review and update."
     }
   },
   {
@@ -334,12 +373,13 @@
     "classification": {
       "topic_tags": [
         "API/SDK",
-        "How-to",
-        "Product",
-        "Connector"
+        "Integration",
+        "Security"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P1 (Medium)",
+      "summary": "\"The user wants to trigger an AWS Lambda function when a specific tag is added to an Atlan asset. They are exploring secure integration options like webhooks and API Gateway or a more direct method.",
+      "suggested_action": "Research and document secure integration options for triggering AWS Lambda from Atlan events.  Assign to the Integrations team for a detailed response."
     }
   },
   {
@@ -348,12 +388,14 @@
     "body": "I see that Atlan has a built-in 'Automations' feature. I'm trying to decide if I should use this to manage a workflow or if I should use an external service like Zapier or our own Airflow instance. Could you provide some guidance or examples on what types of workflows are best suited for the native automations versus an external tool?",
     "classification": {
       "topic_tags": [
-        "Automations",
         "How-to",
+        "Best practices",
         "Product"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P2 (Low)",
+      "summary": "User seeks guidance on choosing between Atlan's native automations and external services (Zapier, Airflow) for workflow management.",
+      "suggested_action": "Provide documentation examples and comparison table of Atlan automations vs. external tools; assign to product documentation team for review."
     }
   },
   {
@@ -363,10 +405,13 @@
     "classification": {
       "topic_tags": [
         "Connector",
-        "Bug"
+        "Troubleshooting",
+        "Urgent"
       ],
-      "sentiment": "Angry",
-      "priority": "P0 (High)"
+      "sentiment": "Urgent",
+      "priority": "P0 (High)",
+      "summary": "The Snowflake connector failed, resulting in missing lineage information for morning reports. User needs immediate help locating detailed error logs to diagnose the issue.",
+      "suggested_action": "Escalate to the engineering team for immediate assistance in locating and analyzing the connector logs. Provide user with temporary workaround if possible."
     }
   },
   {
@@ -376,10 +421,13 @@
     "classification": {
       "topic_tags": [
         "Product",
-        "Bug"
+        "Bug",
+        "Troubleshooting"
       ],
       "sentiment": "Frustrated",
-      "priority": "P1 (Medium)"
+      "priority": "P1 (Medium)",
+      "summary": "Asset successfully extracted by crawler but not published to Atlan UI. User suspects a bug in the publishing process.",
+      "suggested_action": "Assign to engineering team for investigation of the publishing pipeline.  Request crawler logs and timestamps for 'schema.my_table' extraction."
     }
   },
   {
@@ -389,10 +437,13 @@
     "classification": {
       "topic_tags": [
         "How-to",
-        "Product"
+        "Product",
+        "Best practices"
       ],
-      "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "sentiment": "Neutral",
+      "priority": "P1 (Medium)",
+      "summary": "User needs guidance on measuring Atlan adoption and generating usage reports for management.",
+      "suggested_action": "Provide user with documentation on Atlan's reporting and dashboarding features, or schedule a brief training session."
     }
   },
   {
@@ -401,11 +452,14 @@
     "body": "We've been using Atlan for six months, and our catalog is already starting to get a bit messy with duplicate assets and stale metadata from old tests. As we roll this out to more teams, what are some common best practices or features within Atlan that can help us maintain good catalog hygiene and prevent this problem from getting worse?",
     "classification": {
       "topic_tags": [
-        "How-to",
-        "Product"
+        "Best practices",
+        "Product",
+        "Documentation"
       ],
-      "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "sentiment": "Neutral",
+      "priority": "P2 (Low)",
+      "summary": "The user is seeking best practices and features within Atlan to maintain good data catalog hygiene and prevent issues with duplicate assets and stale metadata as more teams use the platform.",
+      "suggested_action": "Suggest relevant documentation on data catalog management and hygiene within Atlan. If no suitable documentation exists, assign this to the documentation team to create a new guide or update existing materials."
     }
   },
   {
@@ -415,10 +469,13 @@
     "classification": {
       "topic_tags": [
         "How-to",
-        "Product"
+        "Best practices",
+        "Onboarding"
       ],
       "sentiment": "Curious",
-      "priority": "P1 (Medium)"
+      "priority": "P1 (Medium)",
+      "summary": "Request for guidance on scaling Atlan across multiple business units, considering workspace structure and governance.",
+      "suggested_action": "Assign to the Atlan Onboarding team for a consultation on multi-unit deployments and best practices.  They can provide tailored advice on workspace structure, permissions, and governance model implementation."
     }
   }
 ]

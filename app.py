@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Atlan AI Copilot",
-    page_icon="🤖",
     layout="wide"
 )
 
@@ -62,19 +61,6 @@ if not os.path.exists("data/sample_tickets.json"):
     st.error("❌ data/sample_tickets.json not found.")
     st.stop()
 
-# --- SIDEBAR ---
-with st.sidebar:
-    st.image("https://assets-global.website-files.com/6145f4ba375a5e33a46a3628/650968988a623258c735d793_Atlan%20Logo%20(1).svg", width=150)
-    st.header("AI Copilot")
-    st.info("An AI-powered pipeline for classifying and responding to customer support tickets.")
-    st.divider()
-    st.header("Controls")
-    if st.button("Clear Classification Cache"):
-        if os.path.exists(CLASSIFICATION_CACHE_FILE):
-            os.remove(CLASSIFICATION_CACHE_FILE)
-            st.success("Cache cleared! App will re-classify on next run.")
-            st.rerun()
-
 # --- MAIN APPLICATION ---
 st.title("🤖 Atlan AI Copilot")
 st.caption("AI-powered ticket triage and automated support dashboard.")
@@ -92,7 +78,6 @@ tickets = load_tickets()
 @st.cache_resource
 def get_cached_classification_chain():
     from modules.classification import get_classification_chain
-    st.write("🚀 Initializing AI classification chain... (runs only once)")
     return get_classification_chain()
 
 
@@ -105,7 +90,6 @@ def load_or_classify_all_tickets(tickets_json, chain):
     it classifies ALL tickets, shows a progress bar, and saves the result.
     """
     if os.path.exists(CLASSIFICATION_CACHE_FILE):
-        st.info("✅ Loading pre-classified tickets from the local cache file.")
         with open(CLASSIFICATION_CACHE_FILE, 'r') as f:
             return json.load(f)
 
@@ -157,78 +141,154 @@ classification_chain = get_cached_classification_chain()
 with st.spinner("🤖 Loading or classifying tickets..."):
     classified_tickets = load_or_classify_all_tickets(tickets, classification_chain)
 
-# --- Summary Metrics ---
+# --- Enhanced Summary Metrics ---
 total_tickets = len(classified_tickets)
 high_priority = sum(1 for item in classified_tickets if "P0" in item['classification']['priority'])
-frustrated_tickets = sum(1 for item in classified_tickets if "Frustrated" in item['classification']['sentiment'])
+frustrated_tickets = sum(1 for item in classified_tickets if item['classification']['sentiment'] in ["Frustrated", "Angry"])
 
+# Count urgent/time-sensitive tickets
+urgent_tickets = sum(1 for item in classified_tickets if item['classification']['sentiment'] in ["Urgent", "Angry"] or "P0" in item['classification']['priority'])
+
+# Create enhanced metrics display
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Tickets Analyzed", total_tickets)
 col2.metric("High Priority (P0)", high_priority, delta=high_priority, delta_color="inverse")
-col3.metric("Frustrated Customers", frustrated_tickets, delta=frustrated_tickets, delta_color="inverse")
+col3.metric("Frustrated/Angry Users", frustrated_tickets, delta=frustrated_tickets, delta_color="inverse")
 
-# --- Analytics Charts ---
-analytics_data = []
+# --- Enhanced Analytics Charts (Corrected Logic) ---
+# 1. Prepare data for the TOPIC chart (this part is the same and correct)
+topic_data = []
 for item in classified_tickets:
     for topic in item['classification']['topic_tags']:
-        analytics_data.append({
-            'topic': topic,
-            'sentiment': item['classification']['sentiment'],
-            'priority': item['classification']['priority']
-        })
-analytics_df = pd.DataFrame(analytics_data)
+        topic_data.append({'topic': topic})
+topic_df = pd.DataFrame(topic_data)
 
+# 2. Prepare data for SENTIMENT and PRIORITY charts (one row per ticket)
+ticket_level_data = pd.DataFrame([
+    {
+        'sentiment': item['classification']['sentiment'],
+        'priority': item['classification']['priority']
+    } for item in classified_tickets
+])
+
+# 3. Create the charts using the correct DataFrames
 chart_col1, chart_col2, chart_col3 = st.columns(3)
 with chart_col1:
-    topic_counts = analytics_df['topic'].value_counts()
+    topic_counts = topic_df['topic'].value_counts()
     fig_topics = px.pie(
         values=topic_counts.values,
         names=topic_counts.index,
         title="Topic Distribution"
     )
-
-    # This update moves the percentage to the hover tooltip
     fig_topics.update_traces(
-        textinfo='none', # Hides the text on the pie slices
+        textinfo='none',
         hovertemplate='<b>Topic:</b> %{label}<br><b>Count:</b> %{value}<br><b>Percentage:</b> %{percent}'
     )
     st.plotly_chart(fig_topics, use_container_width=True)
 with chart_col2:
-    sentiment_counts = analytics_df['sentiment'].value_counts()
+    sentiment_counts = ticket_level_data['sentiment'].value_counts() # Use corrected DataFrame
     fig_sentiment = px.bar(
         sentiment_counts,
         title="Sentiment Analysis",
         text_auto=True,
-        labels={'index': 'sentiment', 'value': 'count'} # Renames the data for the tooltip
+        labels={'index': 'sentiment', 'value': 'count'}
     )
-    # This part customizes the text you see when you hover over a bar
     fig_sentiment.update_traces(
         hovertemplate='sentiment=%{x}<br>count=%{y}<extra></extra>'
     )
     st.plotly_chart(fig_sentiment, use_container_width=True)
 with chart_col3:
-    priority_counts = analytics_df['priority'].value_counts()
+    priority_counts = ticket_level_data['priority'].value_counts() # Use corrected DataFrame
     fig_priority = px.bar(priority_counts, title="Priority Levels", text_auto=True)
     st.plotly_chart(fig_priority, use_container_width=True)
 
-# --- Data Export ---
+# --- Enhanced Data Export ---
 df_export = pd.DataFrame([{
-    "Ticket_ID": item["id"], "Subject": item["subject"], "Topics": ", ".join(item['classification']['topic_tags']),
-    "Sentiment": item['classification']['sentiment'], "Priority": item['classification']['priority'], "Body": item["body"]
+    "Ticket_ID": item["id"], 
+    "Subject": item["subject"], 
+    "Topics": ", ".join(item['classification']['topic_tags']),
+    "Sentiment": item['classification']['sentiment'], 
+    "Priority": item['classification']['priority'],
+    "AI_Summary": item['classification'].get('summary', 'N/A'),
+    "Suggested_Action": item['classification'].get('suggested_action', 'N/A'),
+    "Body": item["body"]
 } for item in classified_tickets])
+
 st.download_button(
     label="📤 Export All Classified Tickets to CSV",
     data=df_export.to_csv(index=False).encode('utf-8'),
-    file_name="atlan_classified_tickets.csv",
+    file_name="atlan_classified_tickets_enhanced.csv",
     mime="text/csv",
     use_container_width=True
 )
 
 st.divider()
 
+# Helper function for enhanced ticket display
+def render_enhanced_ticket_view(item):
+    """Render an enhanced ticket view with comprehensive classification details."""
+    classification = item['classification']
+    
+    # Display colored tags at the top
+    priority_colors = {
+        "P0 (High)": "#D32F2F", 
+        "P1 (Medium)": "#F57C00", 
+        "P2 (Low)": "#388E3C"
+    }
+    sentiment_colors = {
+        "Frustrated": "#D32F2F", "Angry": "#D32F2F",
+        "Curious": "#1976D2", "Neutral": "#757575",
+        "Satisfied": "#4CAF50", "Confused": "#FF9800",
+        "Urgent": "#E91E63", "Appreciative": "#4CAF50"
+    }
+    
+    priority_color = priority_colors.get(classification['priority'], "#757575")
+    sentiment_color = sentiment_colors.get(classification['sentiment'], "#757575")
+    
+    # Build tags HTML
+    tags_html = status_tag(classification['priority'], priority_color)
+    tags_html += status_tag(classification['sentiment'], sentiment_color)
+    for topic in classification['topic_tags']:
+        tags_html += status_tag(topic, "#546E7A")
+    
+    st.markdown(tags_html, unsafe_allow_html=True)
+    
+    if 'summary' in classification:
+        st.markdown(f"**AI Summary:** {classification['summary']}")
+    
+    if 'suggested_action' in classification:
+        st.info(f"💡 **Suggested Action:** {classification['suggested_action']}")
+    
+    st.markdown("---")
+    
+    # Display ticket content
+    st.markdown("**Ticket Content:**")
+    st.text_area("", item['body'], height=120, disabled=True, key=f"ticket_content_{item['id']}")
+    
+    # Complete Classification Details - Always Visible (no expander)
+    st.markdown("🔍 **Complete Classification Details**")
+    
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown("**Topics:**")
+        for topic in classification['topic_tags']:
+            st.markdown(f"• {topic}")
+    with col_b:
+        st.markdown("**Analysis:**")
+        st.markdown(f"• **Priority:** {classification['priority']}")
+        st.markdown(f"• **Sentiment:** {classification['sentiment']}")
+        if 'summary' in classification:
+            st.markdown(f"• **Summary:** {classification['summary']}")
+        if 'suggested_action' in classification:
+            st.markdown(f"• **Suggested Action:** {classification['suggested_action']}")
+    
+    # Raw JSON in expander
+    with st.expander("View Raw Classification JSON"):
+        st.json(classification)
+
 # --- SECTION 2: DETAILED TICKET VIEW ---
 st.header("📑 Detailed View: Classified Tickets")
-st.caption("Review individual tickets and the AI's detailed classification for each.")
+st.caption("Review individual tickets and complete AI classification details.")
 
 # Create two columns
 col1, col2 = st.columns(2)
@@ -238,52 +298,14 @@ for index, item in enumerate(classified_tickets):
     # Use the first column for even-indexed tickets
     if index % 2 == 0:
         with col1:
-            with st.expander(f"**{item['id']}**: {item['subject']}"):
-                classification = item['classification']
-                
-                # Display colored tags at the top
-                priority_color = {"P0 (High)": "#D32F2F", "P1 (Medium)": "#F57C00", "P2 (Low)": "#388E3C"}.get(classification['priority'], "#757575")
-                sentiment_color = {"Frustrated": "#D32F2F", "Angry": "red", "Curious": "#1976D2", "Neutral": "#757575"}.get(classification['sentiment'], "#757575")
-                
-                tags_html = status_tag(classification['priority'], priority_color)
-                tags_html += status_tag(classification['sentiment'], sentiment_color)
-                for topic in classification['topic_tags']:
-                    tags_html += status_tag(topic, "#546E7A")
-                
-                st.markdown(tags_html, unsafe_allow_html=True)
-                st.markdown("---")
-                
-                # Display ticket content
-                st.markdown("**Ticket Content:**")
-                st.text_area("", item['body'], height=150, disabled=True)
-                
-                with st.expander("View Raw Classification JSON"):
-                    st.json(classification)
+            with st.expander(f"**{item['id']}**: {item['subject']}", expanded=False):
+                render_enhanced_ticket_view(item)
 
     # Use the second column for odd-indexed tickets
     else:
         with col2:
-            with st.expander(f"**{item['id']}**: {item['subject']}"):
-                classification = item['classification']
-                
-                # Display colored tags at the top
-                priority_color = {"P0 (High)": "#D32F2F", "P1 (Medium)": "#F57C00", "P2 (Low)": "#388E3C"}.get(classification['priority'], "#757575")
-                sentiment_color = {"Frustrated": "#D32F2F", "Angry": "red", "Curious": "#1976D2", "Neutral": "#757575"}.get(classification['sentiment'], "#757575")
-                
-                tags_html = status_tag(classification['priority'], priority_color)
-                tags_html += status_tag(classification['sentiment'], sentiment_color)
-                for topic in classification['topic_tags']:
-                    tags_html += status_tag(topic, "#546E7A")
-                
-                st.markdown(tags_html, unsafe_allow_html=True)
-                st.markdown("---")
-                
-                # Display ticket content
-                st.markdown("**Ticket Content:**")
-                st.text_area("", item['body'], height=150, disabled=True)
-                
-                with st.expander("View Raw Classification JSON"):
-                    st.json(classification)
+            with st.expander(f"**{item['id']}**: {item['subject']}", expanded=False):
+                render_enhanced_ticket_view(item)
 
 st.divider()
 # --- SECTION 3: INTERACTIVE SIMULATION ---

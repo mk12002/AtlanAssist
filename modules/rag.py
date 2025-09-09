@@ -67,7 +67,7 @@ def get_rag_response_stream(query: str, conversation_history: str = ""):
     vector_store, llm = get_rag_chain()
     
     # Retrieve more documents for better context
-    docs = vector_store.similarity_search(query, k=5)
+    docs = vector_store.similarity_search(query, k=7)
     
     # Robustness: Handle cases where no relevant documents are found
     if not docs:
