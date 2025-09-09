@@ -27,10 +27,11 @@ def test_environment():
         print("❌ GOOGLE_API_KEY not set")
         return False
     
-    # Check FAISS index
+    # Check FAISS index (now handled by download function in the app)
     if not os.path.exists("faiss_index"):
-        print("❌ FAISS index not found - run 'python build_index.py' first")
-        return False
+        print("⚠️  FAISS index not found locally - app will download it automatically")
+    else:
+        print("✅ FAISS index found locally")
     
     # Check sample data
     if not os.path.exists("data/sample_tickets.json"):
@@ -152,16 +153,25 @@ def test_rag():
     """Test RAG pipeline functionality"""
     print("\n🔎 Testing RAG Pipeline...")
     try:
-        from modules.rag import get_rag_response
+        from modules.rag import get_rag_response_stream
         test_query = "How do I configure column-level lineage in Atlan?"
-        answer, sources = get_rag_response(test_query)
-        if not answer or not isinstance(answer, str):
+        
+        # Collect the streaming response
+        full_response = ""
+        sources = []
+        for part in get_rag_response_stream(test_query):
+            if "chunk" in part:
+                full_response += part["chunk"]
+            elif "sources" in part:
+                sources = part["sources"]
+        
+        if not full_response or not isinstance(full_response, str):
             print("❌ RAG did not return a valid answer")
             return False
         if not isinstance(sources, list):
             print("❌ RAG did not return sources as a list")
             return False
-        print(f"✅ RAG test passed\n   Answer: {answer[:80]}...\n   Sources: {sources}")
+        print(f"✅ RAG test passed\n   Answer: {full_response[:80]}...\n   Sources: {sources}")
         return True
     except Exception as e:
         print(f"❌ RAG error: {e}")

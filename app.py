@@ -5,6 +5,9 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import time
+import gdown
+import zipfile
+import shutil
 from dotenv import load_dotenv
 
 # --- PAGE CONFIGURATION ---
@@ -17,6 +20,35 @@ st.set_page_config(
 # Load environment variables
 load_dotenv()
 
+# --- FUNCTION TO DOWNLOAD AND UNZIP THE INDEX ---
+@st.cache_resource
+def download_and_unzip_index():
+    """
+    Downloads the FAISS index from Google Drive and unzips it if not already present.
+    """
+    index_dir = "faiss_index"
+    zip_file = "faiss_index.zip"
+
+    if not os.path.exists(index_dir):
+        st.warning(f"⏳ Index not found. Downloading from the cloud... (this happens only once)")
+
+        # Get the file ID from Streamlit secrets
+        file_id = st.secrets.get("GDRIVE_INDEX_ID")
+        if not file_id:
+            st.error("🚨 GDRIVE_INDEX_ID secret not found. Please add it in your Streamlit Cloud settings.")
+            st.stop()
+
+        # Download the zip file
+        output = gdown.download(id=file_id, output=zip_file, quiet=False)
+
+        # Unzip the file
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            zip_ref.extractall(".")
+        st.success("✅ Index downloaded and ready!")
+
+        # Clean up the zip file
+        os.remove(zip_file)
+
 # Helper function for colored status tags
 def status_tag(text, color):
     return f'<span style="background-color:{color}; color:white; padding: 3px 10px; border-radius:15px; font-size:13px; margin: 2px;">{text}</span>'
@@ -27,9 +59,10 @@ CLASSIFICATION_CACHE_FILE = "classified_tickets_cache.json"
 if not os.environ.get("GOOGLE_API_KEY"):
     st.error("❌ GOOGLE_API_KEY is not set. Please add it to your .env file or Streamlit secrets.")
     st.stop()
-if not os.path.exists("faiss_index"):
-    st.error("❌ FAISS index not found. Please run 'python build_index.py' first.")
-    st.stop()
+
+# Download and unzip index if not present
+download_and_unzip_index()
+
 if not os.path.exists("data/sample_tickets.json"):
     st.error("❌ data/sample_tickets.json not found.")
     st.stop()

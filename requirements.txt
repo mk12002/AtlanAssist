@@ -10,3 +10,4 @@ faiss-cpu
 pydantic
 plotly
 pandas
+gdown

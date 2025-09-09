@@ -18,3 +18,5 @@ __pycache__/
 Thumbs.db
 
 faiss_index/
+classified_tickets_cache.json
+
