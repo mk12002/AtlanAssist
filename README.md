@@ -53,10 +53,13 @@ A tabbed interface for testing the AI in two distinct modes:
 - Always cites source URLs from the knowledge base
 - Combines information from multiple documentation sources
 
-### ⚡ **Persistent Caching**
-- File-based cache for bulk classifications
-- Fast startups after initial run
-- Minimizes API calls and reduces costs
+### ⚡ **Persistent Caching & Token Optimization**
+- **Smart Caching System**: File-based cache for bulk ticket classifications stored in `classified_tickets_cache.json`
+- **Token Usage Reduction**: After the initial run, all ticket classifications are cached locally, preventing repeated API calls
+- **Fast Startups**: Subsequent app launches load pre-classified tickets instantly from cache (no API usage)
+- **Cost Optimization**: Significantly reduces Google Gemini API token consumption and costs
+- **Cache Management**: Built-in "Clear Cache" button in the sidebar to force re-classification when needed
+- **Development Friendly**: Cached results persist between development sessions, speeding up testing and iteration
 
 ## 🏗️ Architecture
 
@@ -125,7 +128,10 @@ graph TD;
   - `@st.cache_resource` for AI models (session-persistent)
   - Persistent JSON file for bulk classification results (run-persistent)
 - **Key Benefit**: Drastically reduces API calls and improves load times
-- **Trade-off**: Storage space vs. API cost and speed
+- **Token Optimization**: Cached tickets display without consuming any API tokens
+- **File Location**: Classifications stored in `classified_tickets_cache.json` for persistence across sessions
+- **Cache Invalidation**: Manual cache clearing available via sidebar button for fresh classifications
+- **Trade-off**: Storage space vs. API cost and speed (heavily favors cost savings)
 
 ## 🚀 Setup and Run Instructions
 
@@ -219,9 +225,11 @@ atlan-ai-copilot/
 
 ### 🏁 **Getting Started**
 
-1. **First Run**: The app will classify all sample tickets (takes 2-3 minutes initially)
-2. **Subsequent Runs**: Instant loading thanks to persistent caching
-3. **Explore**: Navigate through the three main sections
+1. **First Run**: The app will classify all sample tickets (takes 2-3 minutes initially due to API calls)
+2. **Subsequent Runs**: **Instant loading** thanks to persistent caching - no API tokens used for displaying cached tickets
+3. **Cache Benefits**: All ticket data is served from `classified_tickets_cache.json` to prevent token usage on every startup
+4. **Cache Control**: Use the "Clear Classification Cache" button in the sidebar to force fresh classifications
+5. **Explore**: Navigate through the three main sections with cached data for fast, responsive experience
 
 ### 📊 **Team Dashboard**
 

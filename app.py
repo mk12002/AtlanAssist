@@ -181,11 +181,30 @@ analytics_df = pd.DataFrame(analytics_data)
 chart_col1, chart_col2, chart_col3 = st.columns(3)
 with chart_col1:
     topic_counts = analytics_df['topic'].value_counts()
-    fig_topics = px.pie(values=topic_counts.values, names=topic_counts.index, title="Topic Distribution")
+    fig_topics = px.pie(
+        values=topic_counts.values,
+        names=topic_counts.index,
+        title="Topic Distribution"
+    )
+
+    # This update moves the percentage to the hover tooltip
+    fig_topics.update_traces(
+        textinfo='none', # Hides the text on the pie slices
+        hovertemplate='<b>Topic:</b> %{label}<br><b>Count:</b> %{value}<br><b>Percentage:</b> %{percent}'
+    )
     st.plotly_chart(fig_topics, use_container_width=True)
 with chart_col2:
     sentiment_counts = analytics_df['sentiment'].value_counts()
-    fig_sentiment = px.bar(sentiment_counts, title="Sentiment Analysis", text_auto=True)
+    fig_sentiment = px.bar(
+        sentiment_counts,
+        title="Sentiment Analysis",
+        text_auto=True,
+        labels={'index': 'sentiment', 'value': 'count'} # Renames the data for the tooltip
+    )
+    # This part customizes the text you see when you hover over a bar
+    fig_sentiment.update_traces(
+        hovertemplate='sentiment=%{x}<br>count=%{y}<extra></extra>'
+    )
     st.plotly_chart(fig_sentiment, use_container_width=True)
 with chart_col3:
     priority_counts = analytics_df['priority'].value_counts()
