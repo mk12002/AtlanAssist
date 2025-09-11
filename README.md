@@ -69,42 +69,48 @@ A tabbed interface for testing the AI in two distinct modes:
 ## Architecture
 
 ```mermaid
-graph TD;
+graph TD
     subgraph "User Interface"
-        UI[Streamlit App: app.py]
+        UI[Streamlit Application]
     end
 
-    subgraph "AI Core Logic (LangChain)"
-        UI -->|New Query| Router{Decision Logic}
-        Router -->|Classify| ClassificationChain[Classification Chain]
-        Router -->|Answer| RAGChain[RAG Chain]
-        ClassificationChain -->|Structured Output| Gemini[Google Gemini 1.5 Flash]
-        RAGChain -->|Search Query| VectorStore[FAISS Vector Store]
-        VectorStore -->|Context| RAGChain
-        RAGChain -->|Context + Query| Gemini
+    subgraph "Knowledge Base (Offline Process)"
+        KB_Build("build_index.py")
+    end
+
+    subgraph "AI Core Logic (Live Interaction)"
+        direction LR
         
-        subgraph "Session Caching (@st.cache_resource)"
-            CachedChain[Cached Classification Chain]
-            CachedRAG[Cached RAG Components]
+        Start((Start App)) --> CacheModels
+
+        subgraph "Session Caching (Fast)"
+            CacheModels["<b>Load ALL Models Once</b><br>1. Classification Chain (LLM)<br>2. RAG Components (FAISS, Embeddings, LLM)<br>@st.cache_resource"]
+        end
+
+        UI -- "1. User sends query" --> Classification
+        Classification[Step A: Classification Chain] -- "Uses cached LLM" --> CacheModels
+        Classification -- "2. Classification Result" --> Decision{Step B: Decision Logic<br>(if/else on topic)}
+
+        Decision -- "Topic is 'How-to', 'Product', etc." --> RAG
+        Decision -- "Topic is 'Bug', etc." --> RoutingMsg[Step C2: Generate Routing Message]
+        RoutingMsg -- "4. Final Response" --> UI
+
+        subgraph "RAG Chain (Fast)"
+            RAG[Step C1: get_rag_response_stream]
+            Search[Similarity Search]
+            LLM_RAG[LLM Call with Context]
         end
         
-        ClassificationChain -.->|Cached| CachedChain
-        RAGChain -.->|Cached| CachedRAG
-        VectorStore -.->|Cached| CachedRAG
+        CacheModels -- "Provides cached FAISS & LLM" --> RAG
+        RAG --> Search -- "Context" --> LLM_RAG
+        LLM_RAG -- "3. Final Response" --> UI
     end
 
-    subgraph "Knowledge Base (Offline Build)"
-        Crawler[Sitemap Crawler] --> AtlanDocs[docs.atlan.com]
-        Crawler --> DevHub[developer.atlan.com]
-        Embeddings[Sentence-Transformers] --> VectorStore
-        AtlanDocs --> TextSplitter --> Embeddings
-        DevHub --> TextSplitter --> Embeddings
-    end
+    KB_Build -- "Creates/Downloads" --> CacheModels
 
-    style UI fill:#87CEEB
-    style Gemini fill:#98FB98
-    style CachedChain fill:#FFE4B5
-    style CachedRAG fill:#FFE4B5
+    style "Knowledge Base (Offline Process)" fill:#f2f2f2,stroke:#333,stroke-width:2px
+    style "Session Caching (Fast)" fill:#e6ffcc,stroke:#38761d,stroke-width:2px
+```
 ```
 
 ### Technology Stack
