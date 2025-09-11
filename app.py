@@ -67,6 +67,13 @@ def get_cached_classification_chain():
     from modules.classification import get_classification_chain
     return get_classification_chain()
 
+@st.cache_resource
+def get_cached_rag_components():
+    """Loads and caches the RAG model and vector store."""
+    from modules.rag import get_rag_chain
+    vector_store, llm = get_rag_chain()
+    return vector_store, llm
+
 def load_or_classify_all_tickets(tickets_json, chain):
     """
     Loads classifications from a persistent file cache. If the cache doesn't exist,
@@ -114,6 +121,7 @@ st.header("📊 Team Dashboard: Bulk Ticket Analysis")
 st.caption("High-level overview of all support tickets, their classifications, and key trends.")
 
 classification_chain = get_cached_classification_chain()
+vector_store, rag_llm = get_cached_rag_components()
 
 with st.spinner("🤖 Loading or classifying tickets..."):
     classified_tickets = load_or_classify_all_tickets(tickets, classification_chain)
@@ -303,7 +311,7 @@ with tab1:
                             conversation_history += f"user: {q['query']}\nassistant: {q['answer']}\n"
                     
                     full_response, sources = "", []
-                    for part in get_rag_response_stream(user_query, conversation_history):
+                    for part in get_rag_response_stream(vector_store, rag_llm, user_query, conversation_history):
                         if "chunk" in part: full_response += part["chunk"]
                         elif "sources" in part: sources = part["sources"]
                     answer = full_response
@@ -369,7 +377,7 @@ with tab2:
                         recent_messages = st.session_state.messages[-4:]
                         conversation_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_messages])
                     
-                    for part in get_rag_response_stream(prompt, conversation_history):
+                    for part in get_rag_response_stream(vector_store, rag_llm, prompt, conversation_history):
                         if "chunk" in part:
                             full_response += part["chunk"]
                             response_placeholder.markdown(full_response + "▌")

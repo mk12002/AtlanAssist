@@ -46,20 +46,20 @@ def get_rag_chain():
     llm = ChatGoogleGenerativeAI(model=LLM_MODEL, temperature=0)
     return vector_store, llm
 
-def get_rag_response_stream(query: str, conversation_history: str = ""):
+def get_rag_response_stream(vector_store, llm, query: str, conversation_history: str = ""):
     """
-    Performs RAG and streams the response.
+    Performs RAG and streams the response using pre-loaded components.
 
     Args:
-        query: The current user question
-        conversation_history: Previous conversation context for better follow-up answers
+        vector_store: The pre-loaded FAISS vector store.
+        llm: The pre-loaded language model.
+        query: The current user question.
+        conversation_history: Previous conversation context for better follow-up answers.
 
     Yields:
         dict: A dictionary containing either a piece of the content ('chunk')
               or the final list of sources ('sources').
     """
-    vector_store, llm = get_rag_chain()
-    
     docs = vector_store.similarity_search(query, k=7)
     
     if not docs:

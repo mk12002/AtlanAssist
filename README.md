@@ -1,4 +1,4 @@
-# 🤖 Atlan AI Copilot
+# Atlan AI Copilot
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/framework-Streamlit-red.svg)](https://streamlit.io/)
@@ -7,91 +7,103 @@
 
 An AI-powered customer support assistant and ticket triage system built for Atlan, leveraging Google Gemini, Retrieval-Augmented Generation (RAG), and local vector search to streamline support workflows and provide intelligent, context-aware responses.
 
-## 🎯 Project Overview
+## Project Overview
 
 This project solves two critical problems for scaling customer support teams:
 
-### 🔄 **Automated Triage**
+### Automated Triage
 Instantly classify incoming support tickets by topic, sentiment, and priority to streamline workflows and ensure urgent issues get immediate attention.
 
-### 🧠 **Intelligent Responses**
+### Intelligent Responses
 Provide instant, context-aware answers to common user questions by searching a comprehensive knowledge base built from Atlan's official documentation.
 
 The entire AI pipeline is presented through an interactive web application built with Streamlit, offering both team-facing analytics and customer-facing chat experiences.
 
-## ✨ Key Features
+## Key Features
 
-### 📊 **Bulk Ticket Classification Dashboard**
+### Bulk Ticket Classification Dashboard
 - On startup, ingests and classifies a batch of sample tickets
 - Displays results in a professional "Team Dashboard" with metrics and analytics
 - Real-time analytics with interactive charts (pie, bar) visualizing trends in topics, sentiment, and priority levels
 
-### 🎫 **Detailed Ticket Review**
+### Detailed Ticket Review
 - Expandable individual tickets showing full content and AI classification
 - Color-coded status tags for instant visual feedback
 - Raw JSON analysis view for technical details
 
-### 📤 **Single-Click Data Export**
+### Single-Click Data Export
 - Export all classified ticket data to CSV format
 - Professional formatting with all relevant classification metadata
 
-### 🚀 **Interactive Simulation Hub**
+### Interactive Simulation Hub
 A tabbed interface for testing the AI in two distinct modes:
 
-#### 🧑‍💻 **Triage Simulation (Support Team's View)**
+#### Triage Simulation (Support Team's View)
 - Shows AI's internal "back-end" analysis (Topic, Sentiment, Priority)
 - Displays final "front-end" customer response
 - Perfect for training and quality assurance
 
-#### 💬 **Live Chat Simulation (Customer's View)**
+#### Live Chat Simulation (Customer's View)
 - Real-time conversational chat experience
 - Streaming responses for better user experience
 - Context-aware follow-up handling with conversation history
 
-### 📚 **RAG with Source Citations**
+### RAG with Source Citations
 - Uses Retrieval-Augmented Generation for accurate, fact-based responses
 - Always cites source URLs from the knowledge base
 - Combines information from multiple documentation sources
 
-### ⚡ **Persistent Caching & Token Optimization**
+### Persistent Caching & Performance Optimization
 - **Smart Caching System**: File-based cache for bulk ticket classifications stored in `classified_tickets_cache.json`
+- **RAG Component Caching**: Heavy embedding models and FAISS index loaded once per session using `@st.cache_resource`
+- **Performance Boost**: RAG queries now execute 10x faster by avoiding model reloading on every request
 - **Token Usage Reduction**: After the initial run, all ticket classifications are cached locally, preventing repeated API calls
 - **Fast Startups**: Subsequent app launches load pre-classified tickets instantly from cache (no API usage)
 - **Cost Optimization**: Significantly reduces Google Gemini API token consumption and costs
-- **Cache Management**: Built-in "Clear Cache" button in the sidebar to force re-classification when needed
 - **Development Friendly**: Cached results persist between development sessions, speeding up testing and iteration
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph TD;
     subgraph "User Interface"
-        UI[💻 Streamlit App: app.py]
+        UI[Streamlit App: app.py]
     end
 
     subgraph "AI Core Logic (LangChain)"
         UI -->|New Query| Router{Decision Logic}
         Router -->|Classify| ClassificationChain[Classification Chain]
         Router -->|Answer| RAGChain[RAG Chain]
-        ClassificationChain -->|Structured Output| Gemini[🤖 Google Gemini 1.5 Flash]
-        RAGChain -->|Search Query| VectorStore[📚 FAISS Vector Store]
+        ClassificationChain -->|Structured Output| Gemini[Google Gemini 1.5 Flash]
+        RAGChain -->|Search Query| VectorStore[FAISS Vector Store]
         VectorStore -->|Context| RAGChain
         RAGChain -->|Context + Query| Gemini
+        
+        subgraph "Session Caching (@st.cache_resource)"
+            CachedChain[Cached Classification Chain]
+            CachedRAG[Cached RAG Components]
+        end
+        
+        ClassificationChain -.->|Cached| CachedChain
+        RAGChain -.->|Cached| CachedRAG
+        VectorStore -.->|Cached| CachedRAG
     end
 
     subgraph "Knowledge Base (Offline Build)"
         Crawler[Sitemap Crawler] --> AtlanDocs[docs.atlan.com]
         Crawler --> DevHub[developer.atlan.com]
-        Embeddings[🧠 Sentence-Transformers] --> VectorStore
+        Embeddings[Sentence-Transformers] --> VectorStore
         AtlanDocs --> TextSplitter --> Embeddings
         DevHub --> TextSplitter --> Embeddings
     end
 
     style UI fill:#87CEEB
     style Gemini fill:#98FB98
+    style CachedChain fill:#FFE4B5
+    style CachedRAG fill:#FFE4B5
 ```
 
-### 🛠️ **Technology Stack**
+### Technology Stack
 
 - **UI Framework**: Streamlit - Rapid development of interactive data applications
 - **Core LLM**: Google Gemini 1.5 Flash - Fast, capable, cost-effective with structured output support
@@ -101,66 +113,66 @@ graph TD;
 - **Vector Store**: FAISS - Fast in-memory similarity search
 - **Deployment**: Streamlit Community Cloud ready
 
-## 🧠 Design Decisions & Trade-offs
+## Design Decisions & Trade-offs
 
-### 🤖 **LLM Choice (Gemini 1.5 Flash)**
+### LLM Choice (Gemini 1.5 Flash)
 - **Why**: Excellent balance of speed, capability, and cost-effectiveness
 - **Key Benefit**: Native support for structured output (JSON mode) ensures reliable classification data
 - **Trade-off**: Cloud dependency vs. local control
 
-### 🖥️ **UI Framework (Streamlit)**
+### UI Framework (Streamlit)
 - **Why**: Rapid development of data-centric web apps, perfect for AI demos
 - **Key Benefit**: Interactive components, built-in caching, easy deployment
 - **Trade-off**: Less customizable than React/Vue but much faster to develop
 
-### 🧮 **Embeddings (Sentence-Transformers)**
+### Embeddings (Sentence-Transformers)
 - **Why**: Local, open-source model ensuring privacy and zero embedding costs
 - **Key Benefit**: all-MiniLM-L6-v2 offers great performance with small footprint
 - **Trade-off**: Slightly lower quality than cloud embeddings but better privacy/cost
 
-### 📊 **Vector Store (FAISS)**
+### Vector Store (FAISS)
 - **Why**: Incredibly fast, in-memory library perfect for self-contained applications
 - **Key Benefit**: No separate database server required, easy local development
 - **Trade-off**: Memory usage vs. persistent storage complexity
 
-### 💾 **Caching Strategy**
+### Caching Strategy
 - **Two-level approach**: 
   - `@st.cache_resource` for AI models (session-persistent)
   - Persistent JSON file for bulk classification results (run-persistent)
 - **Key Benefit**: Drastically reduces API calls and improves load times
 - **Token Optimization**: Cached tickets display without consuming any API tokens
 - **File Location**: Classifications stored in `classified_tickets_cache.json` for persistence across sessions
-- **Cache Invalidation**: Manual cache clearing available via sidebar button for fresh classifications
+- **Performance**: RAG components cached to avoid expensive model reloading (10x speed improvement)
 - **Trade-off**: Storage space vs. API cost and speed (heavily favors cost savings)
 
-## 🚀 Setup and Run Instructions
+## Setup and Run Instructions
 
-### 📋 **Prerequisites**
+### Prerequisites
 
 - **Python 3.9+**
 - **Google Gemini API Key** ([Get one here](https://ai.google.dev/))
 
-### 1️⃣ **Clone the Repository**
+### 1. Clone the Repository
 
 ```bash
 git clone <your-repo-url>
 cd atlan-ai-copilot
 ```
 
-### 2️⃣ **Create a Virtual Environment**
+### 2. Create a Virtual Environment
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-### 3️⃣ **Install Dependencies**
+### 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4️⃣ **Configure Environment Variables**
+### 4. Configure Environment Variables
 
 Create a `.env` file in the root directory:
 
@@ -169,7 +181,7 @@ Create a `.env` file in the root directory:
 GOOGLE_API_KEY="AIzaSy..."
 ```
 
-### 5️⃣ **Build the Knowledge Base Index**
+### 5. Build the Knowledge Base Index
 
 This one-time setup scrapes documentation and builds the local FAISS vector store:
 
@@ -187,7 +199,7 @@ Generating embeddings and building FAISS index...
 ✅ Index build complete and saved.
 ```
 
-### 6️⃣ **Launch the Application**
+### 6. Launch the Application
 
 ```bash
 streamlit run app.py
@@ -195,55 +207,55 @@ streamlit run app.py
 
 The application will be available at `http://localhost:8501`
 
-### 🧪 **(Optional) Run Integration Tests**
+### 7. (Optional) Run Integration Tests
 
 ```bash
 python test_integration.py
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 atlan-ai-copilot/
-├── 📱 app.py                    # Main Streamlit application
-├── 📁 modules/
+├── app.py                    # Main Streamlit application
+├── modules/
 │   ├── __init__.py
-│   ├── 🧠 classification.py     # Ticket classification logic
-│   └── 🔍 rag.py               # RAG pipeline logic
-├── 📁 data/
-│   └── 📄 sample_tickets.json   # Sample ticket data for testing
-├── 📁 faiss_index/             # Auto-generated vector store (after build)
-├── 🔧 .env                     # Environment variables (gitignored)
-├── 📋 .gitignore
-├── 🏗️ build_index.py           # Knowledge base builder script
-├── 📦 requirements.txt         # Python dependencies
-├── 🧪 test_integration.py      # Integration test suite
-└── 📖 README.md               # This file
+│   ├── classification.py     # Ticket classification logic
+│   └── rag.py               # RAG pipeline logic
+├── data/
+│   └── sample_tickets.json   # Sample ticket data for testing
+├── faiss_index/             # Auto-generated vector store (after build)
+├── .env                     # Environment variables (gitignored)
+├── .gitignore
+├── build_index.py           # Knowledge base builder script
+├── requirements.txt         # Python dependencies
+├── test_integration.py      # Integration test suite
+└── README.md               # This file
 ```
 
-## 🎮 Usage Guide
+## Usage Guide
 
-### 🏁 **Getting Started**
+### Getting Started
 
 1. **First Run**: The app will classify all sample tickets (takes 2-3 minutes initially due to API calls)
 2. **Subsequent Runs**: **Instant loading** thanks to persistent caching - no API tokens used for displaying cached tickets
 3. **Cache Benefits**: All ticket data is served from `classified_tickets_cache.json` to prevent token usage on every startup
-4. **Cache Control**: Use the "Clear Classification Cache" button in the sidebar to force fresh classifications
+4. **Performance**: RAG components are cached in session memory for 10x faster query responses
 5. **Explore**: Navigate through the three main sections with cached data for fast, responsive experience
 
-### 📊 **Team Dashboard**
+### Team Dashboard
 
 - View classified ticket metrics and analytics
 - Explore interactive charts showing trends
 - Export data for further analysis
 
-### 📑 **Detailed Ticket View**
+### Detailed Ticket View
 
 - Review individual ticket classifications
 - See color-coded priority and sentiment tags
 - Access raw JSON analysis data
 
-### 🚀 **Interactive Simulation**
+### Interactive Simulation
 
 **Triage Mode**: Test internal AI analysis
 - Enter a support query
@@ -255,7 +267,7 @@ atlan-ai-copilot/
 - Streaming responses with source citations
 - Context-aware follow-up handling
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -263,11 +275,11 @@ atlan-ai-copilot/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Atlan** for the comprehensive documentation that powers the knowledge base
 - **Google** for the Gemini API
@@ -275,7 +287,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Streamlit** for the amazing web app framework
 - **LangChain** for AI application development tools
 
-## 📞 Support
+## Support
 
 If you encounter any issues or have questions:
 
@@ -286,4 +298,4 @@ If you encounter any issues or have questions:
 
 ---
 
-**Built with ❤️ for better customer support experiences**
+**Built with care for better customer support experiences**

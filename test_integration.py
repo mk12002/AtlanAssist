@@ -143,12 +143,14 @@ def test_rag():
     """Test RAG pipeline functionality"""
     print("\n🔎 Testing RAG Pipeline...")
     try:
-        from modules.rag import get_rag_response_stream
+        from modules.rag import get_rag_chain, get_rag_response_stream
         test_query = "How do I configure column-level lineage in Atlan?"
+        
+        vector_store, llm = get_rag_chain()
         
         full_response = ""
         sources = []
-        for part in get_rag_response_stream(test_query):
+        for part in get_rag_response_stream(vector_store, llm, test_query):
             if "chunk" in part:
                 full_response += part["chunk"]
             elif "sources" in part:
