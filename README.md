@@ -84,15 +84,15 @@ graph TD
         Start((Start App)) --> CacheModels
 
         subgraph "Session Caching (Fast)"
-            CacheModels["<b>Load ALL Models Once</b><br>1. Classification Chain (LLM)<br>2. RAG Components (FAISS, Embeddings, LLM)<br>@st.cache_resource"]
+            CacheModels["Load ALL Models Once<br/>1. Classification Chain LLM<br/>2. RAG Components FAISS, Embeddings, LLM<br/>@st.cache_resource"]
         end
 
         UI -- "1. User sends query" --> Classification
         Classification[Step A: Classification Chain] -- "Uses cached LLM" --> CacheModels
-        Classification -- "2. Classification Result" --> Decision{Step B: Decision Logic<br>(if/else on topic)}
+        Classification -- "2. Classification Result" --> Decision{Step B: Decision Logic<br/>if/else on topic}
 
-        Decision -- "Topic is 'How-to', 'Product', etc." --> RAG
-        Decision -- "Topic is 'Bug', etc." --> RoutingMsg[Step C2: Generate Routing Message]
+        Decision -- "Topic is How-to, Product, etc." --> RAG
+        Decision -- "Topic is Bug, etc." --> RoutingMsg[Step C2: Generate Routing Message]
         RoutingMsg -- "4. Final Response" --> UI
 
         subgraph "RAG Chain (Fast)"
@@ -108,8 +108,9 @@ graph TD
 
     KB_Build -- "Creates/Downloads" --> CacheModels
 
-    style "Knowledge Base (Offline Process)" fill:#f2f2f2,stroke:#333,stroke-width:2px
-    style "Session Caching (Fast)" fill:#e6ffcc,stroke:#38761d,stroke-width:2px
+    style UI fill:#87CEEB
+    style CacheModels fill:#e6ffcc,stroke:#38761d,stroke-width:2px
+    style KB_Build fill:#f2f2f2,stroke:#333,stroke-width:2px
 ```
 ```
 
