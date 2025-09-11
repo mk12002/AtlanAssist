@@ -1,4 +1,3 @@
-# build_index.py
 from modules.rag import build_index
 import os
 

@@ -10,21 +10,16 @@ import zipfile
 import shutil
 from dotenv import load_dotenv
 
-# --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Atlan AI Copilot",
     layout="wide"
 )
 
-# Load environment variables
 load_dotenv()
 
-# --- FUNCTION TO DOWNLOAD AND UNZIP THE INDEX ---
 @st.cache_resource
 def download_and_unzip_index():
-    """
-    Downloads the FAISS index from Google Drive and unzips it if not already present.
-    """
+    """Downloads the FAISS index from Google Drive and unzips it if not already present."""
     index_dir = "faiss_index"
     zip_file = "faiss_index.zip"
 
@@ -34,7 +29,6 @@ def download_and_unzip_index():
             st.error("🚨 GDRIVE_INDEX_ID secret not found. Please add it in your Streamlit Cloud settings.")
             st.stop()
 
-        # The spinner will appear only while this block is running
         with st.spinner("⏳ First-time setup: Downloading knowledge base... Please wait."):
             output = gdown.download(id=file_id, output=zip_file, quiet=False)
             with zipfile.ZipFile(zip_file, 'r') as zip_ref:
@@ -43,29 +37,24 @@ def download_and_unzip_index():
 
         st.success("✅ Knowledge base ready!")
 
-# Helper function for colored status tags
 def status_tag(text, color):
     return f'<span style="background-color:{color}; color:white; padding: 3px 10px; border-radius:15px; font-size:13px; margin: 2px;">{text}</span>'
 
-# Cache file for persistent storage
 CLASSIFICATION_CACHE_FILE = "classified_tickets_cache.json"
 
 if not os.environ.get("GOOGLE_API_KEY"):
     st.error("❌ GOOGLE_API_KEY is not set. Please add it to your .env file or Streamlit secrets.")
     st.stop()
 
-# Download and unzip index if not present
 download_and_unzip_index()
 
 if not os.path.exists("data/sample_tickets.json"):
     st.error("❌ data/sample_tickets.json not found.")
     st.stop()
 
-# --- MAIN APPLICATION ---
 st.title("🤖 Atlan AI Copilot")
 st.caption("AI-powered ticket triage and automated support dashboard.")
 
-# --- Cached Functions (for loading models and data) ---
 @st.cache_data
 def load_tickets():
     with open("data/sample_tickets.json", "r") as f:
@@ -73,17 +62,11 @@ def load_tickets():
 
 tickets = load_tickets()
 
-
-# --- STEP 1: CACHE THE AI MODEL/CHAIN ---
 @st.cache_resource
 def get_cached_classification_chain():
     from modules.classification import get_classification_chain
     return get_classification_chain()
 
-
-
-
-# --- STEP 2: PERSISTENT FILE-BASED CACHING ---
 def load_or_classify_all_tickets(tickets_json, chain):
     """
     Loads classifications from a persistent file cache. If the cache doesn't exist,
@@ -100,9 +83,8 @@ def load_or_classify_all_tickets(tickets_json, chain):
 
     total_tickets = len(tickets_json)
     for i, ticket in enumerate(tickets_json):
-        # Respect per-minute rate limits (Gemini Free Tier is ~15 req/min)
         if i > 0:
-            time.sleep(4)  # 4 seconds delay = 15 requests per minute
+            time.sleep(4)
 
         try:
             ticket_text = f"{ticket['subject']}\n\n{ticket['body']}"
@@ -117,39 +99,31 @@ def load_or_classify_all_tickets(tickets_json, chain):
             st.error(f"An error occurred on ticket {ticket['id']}: {e}. Stopping.")
             break
 
-        # Update the progress bar
         progress_percentage = (i + 1) / total_tickets
         progress_text = f"Classifying ticket {i+1}/{total_tickets}..."
         progress_bar.progress(progress_percentage, text=progress_text)
 
-    # Save the results to the cache file for future runs
     with open(CLASSIFICATION_CACHE_FILE, 'w') as f:
         json.dump(results, f, indent=2)
     
-    progress_bar.empty()  # Remove the progress bar after completion
+    progress_bar.empty()
     st.success("✅ All tickets classified and saved to cache for instant loading next time.")
     return results
 
-
-# --- SECTION 1: TEAM DASHBOARD ---
 st.header("📊 Team Dashboard: Bulk Ticket Analysis")
 st.caption("High-level overview of all support tickets, their classifications, and key trends.")
 
-# First, get the cached chain. This will run only once.
 classification_chain = get_cached_classification_chain()
 
 with st.spinner("🤖 Loading or classifying tickets..."):
     classified_tickets = load_or_classify_all_tickets(tickets, classification_chain)
 
-# --- Enhanced Summary Metrics ---
 total_tickets = len(classified_tickets)
 high_priority = sum(1 for item in classified_tickets if "P0" in item['classification']['priority'])
 frustrated_tickets = sum(1 for item in classified_tickets if item['classification']['sentiment'] in ["Frustrated", "Angry"])
 
-# Count urgent/time-sensitive tickets
 urgent_tickets = sum(1 for item in classified_tickets if item['classification']['sentiment'] in ["Urgent", "Angry"] or "P0" in item['classification']['priority'])
 
-# Create enhanced metrics display
 col1, col2, col3 = st.columns(3)
 col1.metric("Total Tickets Analyzed", total_tickets)
 col2.metric("High Priority (P0)", high_priority, delta=high_priority, delta_color="inverse")
@@ -186,7 +160,7 @@ with chart_col1:
     )
     st.plotly_chart(fig_topics, use_container_width=True)
 with chart_col2:
-    sentiment_counts = ticket_level_data['sentiment'].value_counts() # Use corrected DataFrame
+    sentiment_counts = ticket_level_data['sentiment'].value_counts()
     fig_sentiment = px.bar(
         sentiment_counts,
         title="Sentiment Analysis",
@@ -198,11 +172,10 @@ with chart_col2:
     )
     st.plotly_chart(fig_sentiment, use_container_width=True)
 with chart_col3:
-    priority_counts = ticket_level_data['priority'].value_counts() # Use corrected DataFrame
+    priority_counts = ticket_level_data['priority'].value_counts()
     fig_priority = px.bar(priority_counts, title="Priority Levels", text_auto=True)
     st.plotly_chart(fig_priority, use_container_width=True)
 
-# --- Enhanced Data Export ---
 df_export = pd.DataFrame([{
     "Ticket_ID": item["id"], 
     "Subject": item["subject"], 
@@ -224,12 +197,10 @@ st.download_button(
 
 st.divider()
 
-# Helper function for enhanced ticket display
 def render_enhanced_ticket_view(item):
     """Render an enhanced ticket view with comprehensive classification details."""
     classification = item['classification']
     
-    # Display colored tags at the top
     priority_colors = {
         "P0 (High)": "#D32F2F", 
         "P1 (Medium)": "#F57C00", 
@@ -245,7 +216,6 @@ def render_enhanced_ticket_view(item):
     priority_color = priority_colors.get(classification['priority'], "#757575")
     sentiment_color = sentiment_colors.get(classification['sentiment'], "#757575")
     
-    # Build tags HTML
     tags_html = status_tag(classification['priority'], priority_color)
     tags_html += status_tag(classification['sentiment'], sentiment_color)
     for topic in classification['topic_tags']:
@@ -261,11 +231,9 @@ def render_enhanced_ticket_view(item):
     
     st.markdown("---")
     
-    # Display ticket content
     st.markdown("**Ticket Content:**")
     st.text_area("", item['body'], height=120, disabled=True, key=f"ticket_content_{item['id']}")
     
-    # Complete Classification Details - Always Visible (no expander)
     st.markdown("🔍 **Complete Classification Details**")
     
     col_a, col_b = st.columns(2)
@@ -282,40 +250,31 @@ def render_enhanced_ticket_view(item):
         if 'suggested_action' in classification:
             st.markdown(f"• **Suggested Action:** {classification['suggested_action']}")
     
-    # Raw JSON in expander
     with st.expander("View Raw Classification JSON"):
         st.json(classification)
 
-# --- SECTION 2: DETAILED TICKET VIEW ---
 st.header("📑 Detailed View: Classified Tickets")
 st.caption("Review individual tickets and complete AI classification details.")
 
-# Create two columns
 col1, col2 = st.columns(2)
 
-# Loop through the tickets with an index
 for index, item in enumerate(classified_tickets):
-    # Use the first column for even-indexed tickets
     if index % 2 == 0:
         with col1:
             with st.expander(f"**{item['id']}**: {item['subject']}", expanded=False):
                 render_enhanced_ticket_view(item)
-
-    # Use the second column for odd-indexed tickets
     else:
         with col2:
             with st.expander(f"**{item['id']}**: {item['subject']}", expanded=False):
                 render_enhanced_ticket_view(item)
 
 st.divider()
-# --- SECTION 3: INTERACTIVE SIMULATION ---
+
 st.header("� Interactive Copilot Simulation")
 st.caption("Choose a view to test the AI copilot's real-time analysis and response capabilities.")
 
-# --- TABS for Interface Selection ---
 tab1, tab2 = st.tabs(["🧑‍� Triage Simulation (Support Team's View)", "� Live Chat Simulation (Customer's View)"])
 
-# --- TAB 1: TRIAGE SIMULATION ---
 with tab1:
     st.subheader("Submit a Ticket to See the AI's Internal Analysis")
     if "query_history" not in st.session_state:
@@ -337,11 +296,10 @@ with tab1:
                 if any(t in rag_topics for t in topic_tags):
                     from modules.rag import get_rag_response_stream
                     
-                    # Build conversation history from recent query history for context
                     conversation_history = ""
-                    if len(st.session_state.query_history) > 0:  # If we have previous queries
-                        recent_queries = st.session_state.query_history[:2]  # Get last 2 queries
-                        for q in reversed(recent_queries):  # Reverse to show chronological order
+                    if len(st.session_state.query_history) > 0:
+                        recent_queries = st.session_state.query_history[:2]
+                        for q in reversed(recent_queries):
                             conversation_history += f"user: {q['query']}\nassistant: {q['answer']}\n"
                     
                     full_response, sources = "", []
@@ -379,7 +337,6 @@ with tab1:
                 for url in last['sources']:
                     st.markdown(f"- [{url}]({url})")
 
-# --- TAB 2: LIVE CHAT SIMULATION ---
 with tab2:
     st.subheader("Chat with the AI Assistant in Real-Time")
     if "messages" not in st.session_state:
@@ -407,10 +364,9 @@ with tab2:
                 if any(t in rag_topics for t in topic_tags):
                     from modules.rag import get_rag_response_stream
                     
-                    # Build conversation history from recent messages for context
                     conversation_history = ""
-                    if len(st.session_state.messages) > 1:  # If we have previous messages
-                        recent_messages = st.session_state.messages[-4:]  # Get last 4 messages (2 turns)
+                    if len(st.session_state.messages) > 1:
+                        recent_messages = st.session_state.messages[-4:]
                         conversation_history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_messages])
                     
                     for part in get_rag_response_stream(prompt, conversation_history):

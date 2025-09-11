@@ -5,7 +5,6 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Use environment variables for model names with sane defaults
 EMBED_MODEL = os.environ.get("EMBED_MODEL", "all-MiniLM-L6-v2")
 LLM_MODEL = os.environ.get("LLM_MODEL", "gemini-1.5-flash")
 INDEX_PATH = "faiss_index"
@@ -23,29 +22,24 @@ def build_index():
     docs_from_main = loader_docs.load()
     docs_from_dev = loader_dev.load()
     
-    # Combine documents from both sources into a single list
     all_docs = docs_from_main + docs_from_dev
     print(f"Loaded a total of {len(all_docs)} documents.")
     
-    # Split documents into manageable chunks
     print("Splitting documents into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = text_splitter.split_documents(all_docs)
     print(f"Created {len(chunks)} text chunks.")
     
-    # Generate embeddings and create the FAISS vector store
     print("Generating embeddings and building FAISS index...")
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
     vector_store = FAISS.from_documents(chunks, embeddings)
     
-    # Save the index locally
     vector_store.save_local(INDEX_PATH)
     print("✅ Index build complete and saved.")
 
 def get_rag_chain():
     """Initializes the components needed for the RAG pipeline."""
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
-    # Ensure the index path exists before loading
     if not os.path.exists(INDEX_PATH):
         raise FileNotFoundError(f"FAISS index not found at {INDEX_PATH}. Please run build_index.py first.")
     vector_store = FAISS.load_local(INDEX_PATH, embeddings, allow_dangerous_deserialization=True)
@@ -66,10 +60,8 @@ def get_rag_response_stream(query: str, conversation_history: str = ""):
     """
     vector_store, llm = get_rag_chain()
     
-    # Retrieve more documents for better context
     docs = vector_store.similarity_search(query, k=7)
     
-    # Robustness: Handle cases where no relevant documents are found
     if not docs:
         yield {"chunk": "I could not find any relevant documents in the knowledge base to answer your question. Please try rephrasing your query or check the official Atlan documentation."}
         yield {"sources": []}
@@ -78,7 +70,6 @@ def get_rag_response_stream(query: str, conversation_history: str = ""):
     context = "\n\n".join([d.page_content for d in docs])
     sources = sorted(list(set(d.metadata.get("source", "") for d in docs)))
 
-    # Build the prompt with conversation history if available
     conversation_section = ""
     if conversation_history.strip():
         conversation_section = f"""
@@ -106,9 +97,7 @@ Follow these instructions precisely:
 
 **Helpful Answer:**
 """
-    # Use .stream() for real-time output
     for chunk in llm.stream(prompt_template):
         yield {"chunk": chunk.content}
 
-    # Yield the sources at the very end
     yield {"sources": sources}

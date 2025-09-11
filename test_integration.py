@@ -13,27 +13,22 @@ def test_environment():
     """Test if all required environment variables and files exist"""
     print("🔍 Testing Environment Setup...")
     
-    # Check if .env file exists
     if not os.path.exists('.env'):
         print("❌ .env file not found")
         return False
     
-    # Load environment variables
     from dotenv import load_dotenv
     load_dotenv()
     
-    # Check API key
     if not os.environ.get("GOOGLE_API_KEY"):
         print("❌ GOOGLE_API_KEY not set")
         return False
     
-    # Check FAISS index (now handled by download function in the app)
     if not os.path.exists("faiss_index"):
         print("⚠️  FAISS index not found locally - app will download it automatically")
     else:
         print("✅ FAISS index found locally")
     
-    # Check sample data
     if not os.path.exists("data/sample_tickets.json"):
         print("❌ Sample tickets file not found")
         return False
@@ -77,12 +72,10 @@ def test_modules():
     print("\n🧩 Testing Custom Modules...")
     
     try:
-        # Test classification module
         from modules.classification import get_classification_chain, TicketClassification
         chain = get_classification_chain()
         print("✅ Classification module OK")
         
-        # Test RAG module
         from modules.rag import get_rag_chain, get_rag_response
         vector_store, llm = get_rag_chain()
         print("✅ RAG module OK")
@@ -99,7 +92,6 @@ def test_data_loading():
     print("\n📊 Testing Data Loading...")
     
     try:
-        # Test ticket loading
         with open("data/sample_tickets.json", "r") as f:
             tickets = json.load(f)
         
@@ -107,7 +99,6 @@ def test_data_loading():
             print("❌ No tickets found")
             return False
         
-        # Verify ticket structure
         required_fields = ['id', 'subject', 'body']
         for field in required_fields:
             if field not in tickets[0]:
@@ -133,7 +124,6 @@ def test_classification():
         
         result = chain.invoke({"ticket_text": test_text})
         
-        # Verify result structure
         if not hasattr(result, 'topic_tags') or not hasattr(result, 'sentiment') or not hasattr(result, 'priority'):
             print("❌ Invalid classification result structure")
             return False
@@ -156,7 +146,6 @@ def test_rag():
         from modules.rag import get_rag_response_stream
         test_query = "How do I configure column-level lineage in Atlan?"
         
-        # Collect the streaming response
         full_response = ""
         sources = []
         for part in get_rag_response_stream(test_query):
@@ -198,7 +187,7 @@ def run_all_tests():
         if test():
             passed += 1
         else:
-            break  # Stop on first failure
+            break
     
     print(f"\n📋 Test Results: {passed}/{total} passed")
     
