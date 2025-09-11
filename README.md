@@ -4,6 +4,10 @@
 [![Streamlit](https://img.shields.io/badge/framework-Streamlit-red.svg)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/llm-Google%20Gemini%201.5%20Flash-green.svg)](https://ai.google.dev/)
 [![FAISS](https://img.shields.io/badge/vector%20store-FAISS-purple.svg)](https://github.com/facebookresearch/faiss)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://atlanassist.streamlit.app/)
+
+**Live Demo**: [https://atlanassist.streamlit.app/](https://atlanassist.streamlit.app/)  
+**Author**: Mohit Kumar (mohit.kr1103@gmail.com)
 
 An AI-powered customer support assistant and ticket triage system built for Atlan, leveraging Google Gemini, Retrieval-Augmented Generation (RAG), and local vector search to streamline support workflows and provide intelligent, context-aware responses.
 
